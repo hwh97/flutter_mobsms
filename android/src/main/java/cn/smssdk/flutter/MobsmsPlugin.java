@@ -4,6 +4,9 @@ import android.os.Handler;
 import android.os.Looper;
 import android.text.TextUtils;
 
+import androidx.annotation.NonNull;
+import io.flutter.embedding.engine.plugins.FlutterPlugin;
+import org.jetbrains.annotations.NotNull;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -21,20 +24,14 @@ import io.flutter.plugin.common.MethodChannel.Result;
 import io.flutter.plugin.common.PluginRegistry.Registrar;
 
 /** MobsmsPlugin */
-public class MobsmsPlugin implements MethodCallHandler {
+public class MobsmsPlugin implements FlutterPlugin, MethodCallHandler {
 	private static final String TAG = "MobsmsPlugin";
 	public static final String CHANNEL = "com.mob.smssdk";
 	private static final String KEY_CODE = "code";
 	private static final String KEY_MSG = "msg";
 	private static final int BRIDGE_ERR = 700;
 	private static final String ERROR_INTERNAL = "Flutter bridge internal error: ";
-
-  /** Plugin registration. */
-  public static void registerWith(Registrar registrar) {
-  	SMSSDKLog.d("registerWith() called");
-    final MethodChannel channel = new MethodChannel(registrar.messenger(), CHANNEL);
-    channel.setMethodCallHandler(new MobsmsPlugin());
-  }
+	private MethodChannel methodChannel;
 
   @Override
   public void onMethodCall(MethodCall call, final Result rst) {
@@ -359,5 +356,17 @@ public class MobsmsPlugin implements MethodCallHandler {
 				result.success(map);
 			}
 		});
+	}
+
+	@Override
+	public void onAttachedToEngine(@NonNull @NotNull FlutterPluginBinding binding) {
+		SMSSDKLog.d("registerWith() called");
+		methodChannel = new MethodChannel(binding.getBinaryMessenger(), CHANNEL);
+		methodChannel.setMethodCallHandler(new MobsmsPlugin());
+	}
+
+	@Override
+	public void onDetachedFromEngine(@NonNull @NotNull FlutterPluginBinding binding) {
+		methodChannel.setMethodCallHandler(null);
 	}
 }
